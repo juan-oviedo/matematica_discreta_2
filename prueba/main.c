@@ -12,7 +12,7 @@ void destroy (){
     a = a;
 }
 
-void cargar_vertice (vertice * lista [], u32 edge, u32 vecino, unsigned int * vertices_cargados, u32 n){
+void cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int * vertices_cargados, u32 n){
     ENTRY entry;
     ENTRY * puntero_hash;
     char nombre[11];
@@ -24,32 +24,39 @@ void cargar_vertice (vertice * lista [], u32 edge, u32 vecino, unsigned int * ve
     puntero_hash = hsearch(entry, FIND);
     if (puntero_hash == NULL)
     {
-        *vertices_cargados = *vertices_cargados + 1;
-        if (*vertices_cargados > n){
+        //control para ver que haya la cantidad justa de vertices
+        if (*vertices_cargados >= n){
             printf ("hay mas vertices de los aclarados\n");
             destroy();
             return;
         }
+
         vertice nodo = vertice_vacio();
         nodo = vertice_init(nodo, edge, *vertices_cargados);
                                             //printf("llego hasta la init\n");
         nodo = vertice_sumar_vecino(nodo, vecino);
         //cargar nodo a la lista
-        lista[*vertices_cargados] = &nodo;
+        lista[*vertices_cargados] = nodo;
 
         //cargar nodo a la lista de hash
         entry.key = nombre;
         entry.data = nodo;
         puntero_hash = hsearch(entry, ENTER);
+
+        *vertices_cargados = *vertices_cargados + 1;
+    }
+    else if (vertice_nombre(puntero_hash->data) != edge)
+    {
+        printf("se le asigno el mismo hash al vertice %u, y al vertice %u! ayuda\n", vertice_nombre(puntero_hash->data), edge);
     }
     //caso en el que el vertice ya esta cargado
     else{
-                                           // printf("llego hasta el else\n");
+                                            //printf("llego hasta el else\n");
                                             //printf ("%s, %u, %u\n", puntero_hash->key, vertice_nombre(puntero_hash->data), vertice_grado(puntero_hash->data));
         puntero_hash->data = vertice_sumar_vecino(puntero_hash->data, vecino);
     }
     
-                                            printf ("nodo : %u  vecino nuevo: %u  grado: %u\n",vertice_nombre(puntero_hash->data), vecino, vertice_grado(puntero_hash->data));
+                                            //printf ("nodo : %u  vecino nuevo: %u  grado: %u\n", vertice_nombre(puntero_hash->data), vecino, vertice_grado(puntero_hash->data));
     puntero_hash = NULL;
 }
 
@@ -94,14 +101,14 @@ int * prueba (){
     }
     
     //creamos la hash table con mas espacio para que no haya conflictos
-    int error = hcreate(2 * n);
+    int error = hcreate(3 * n);
     if (error == 0)
     {
         printf("No se pudo alocar suficiente memoria para la hash table");
         return NULL;
     }
 
-    vertice * lista [n];
+    vertice lista [n];
 
     //leemos los lados
     for (u32 i = 0; i < m; i++)
@@ -128,6 +135,12 @@ int * prueba (){
         cargar_vertice(lista, vertice1, vertice2, &vertices_cargados, n);
         cargar_vertice(lista, vertice2, vertice1, &vertices_cargados, n);
     }
+
+    for (u32 i = 0; i < n; i++)
+    {
+        printf("nodo: %u,  grado: %u\n", vertice_nombre(lista[i]), vertice_grado(lista[i]));
+    }
+    
 
     return NULL;
 }
