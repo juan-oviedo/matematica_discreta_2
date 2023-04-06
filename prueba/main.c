@@ -3,7 +3,7 @@
 #include <search.h>
 #include "EstructuraGrafo23.h"
 #include "tad_vertice.h"
-
+#include "int_to_str.h"
 
 #define BUFFSIZE 100
 
@@ -12,11 +12,11 @@ void destroy (){
     a = a;
 }
 
-void cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int * vertices_cargados, u32 n){
+unsigned int cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int vertices_cargados, u32 n){
     ENTRY entry;
     ENTRY * puntero_hash;
-    char nombre[11];
-    sprintf(nombre, "%u", edge);
+    char * nombre = int_to_string(edge);
+                                                //printf ("%s\n", nombre);
     entry.key = nombre;
     entry.data = NULL;
 
@@ -24,26 +24,27 @@ void cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int * verti
     puntero_hash = hsearch(entry, FIND);
     if (puntero_hash == NULL)
     {
+                                                printf("nombre: %s  vertice: %u\n", entry.key, edge);
         //control para ver que haya la cantidad justa de vertices
-        if (*vertices_cargados >= n){
-            printf ("hay mas vertices de los aclarados\n");
-            destroy();
-            return;
-        }
+        // if (*vertices_cargados >= n){
+        //     printf ("hay mas vertices de los aclarados\n");
+        //     destroy();
+        //     return;
+        // }
 
         vertice nodo = vertice_vacio();
-        nodo = vertice_init(nodo, edge, *vertices_cargados);
+        nodo = vertice_init(nodo, edge, vertices_cargados);
                                             //printf("llego hasta la init\n");
         nodo = vertice_sumar_vecino(nodo, vecino);
         //cargar nodo a la lista
-        lista[*vertices_cargados] = nodo;
+        lista[vertices_cargados] = nodo;
 
         //cargar nodo a la lista de hash
         entry.key = nombre;
         entry.data = nodo;
         puntero_hash = hsearch(entry, ENTER);
 
-        *vertices_cargados = *vertices_cargados + 1;
+        vertices_cargados = vertices_cargados + 1;
     }
     else if (vertice_nombre(puntero_hash->data) != edge)
     {
@@ -58,6 +59,7 @@ void cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int * verti
     
                                             //printf ("nodo : %u  vecino nuevo: %u  grado: %u\n", vertice_nombre(puntero_hash->data), vecino, vertice_grado(puntero_hash->data));
     puntero_hash = NULL;
+    return vertices_cargados;
 }
 
 int * prueba (){
@@ -101,13 +103,14 @@ int * prueba (){
     }
     
     //creamos la hash table con mas espacio para que no haya conflictos
-    int error = hcreate(3 * n);
+    int error = hcreate(2 * n);
     if (error == 0)
     {
         printf("No se pudo alocar suficiente memoria para la hash table");
         return NULL;
     }
 
+                                                    printf ("vertices: %u, lados: %u\n", n, m);
     vertice lista [n];
 
     //leemos los lados
@@ -132,8 +135,10 @@ int * prueba (){
 
         sscanf(buffer, "e %u %u", &vertice1, &vertice2);
 
-        cargar_vertice(lista, vertice1, vertice2, &vertices_cargados, n);
-        cargar_vertice(lista, vertice2, vertice1, &vertices_cargados, n);
+                                                    printf ("vertice 1: %u  vertice 2: %u\n", vertice1, vertice2);
+
+        vertices_cargados = cargar_vertice(lista, vertice1, vertice2, vertices_cargados, n);
+        vertices_cargados = cargar_vertice(lista, vertice2, vertice1, vertices_cargados, n);
     }
 
     for (u32 i = 0; i < n; i++)
