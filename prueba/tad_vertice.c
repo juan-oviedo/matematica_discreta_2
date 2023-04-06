@@ -9,7 +9,6 @@
 struct s_vertice_t {
     u32 nombre;
     u32 grado;
-    unsigned int indice_provisorio;
     u32 indice;
     list vecinos;
 };
@@ -19,14 +18,13 @@ vertice vertice_vacio (){
     return v;
 }
 
-vertice vertice_init (vertice v, u32 nombre, unsigned int indice_provisorio){
+vertice vertice_init (vertice v, u32 nombre){
     assert(v == NULL);
 
     v = malloc(sizeof (struct s_vertice_t));
     v->nombre = nombre;
     v->grado = 0;
-    v->indice_provisorio = indice_provisorio;
-    v->indice = 4294967295;
+    v->indice = max_u32;
     v->vecinos = empty_list();
 
     return v;
@@ -42,7 +40,7 @@ vertice vertice_sumar_vecino (vertice v, u32 vecino){
 }
 
 vertice vertice_indexar (vertice v, u32 indice){
-    assert (v->indice == 4294967295);
+    assert (v->indice == max_u32);
     v->indice = indice;
 
     return v;

@@ -1,5 +1,6 @@
 #ifndef _GRAFO_H
 #define _GRAFO_H
+#define max_u32 4294967295
 
 typedef unsigned int u32;
 

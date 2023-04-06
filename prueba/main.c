@@ -7,16 +7,18 @@
 
 #define BUFFSIZE 100
 
+// falta destroy / ordenar la lista / lista de adyacencia / funciones del grafo y vertices / sacar asserts y limpiar codigo
+
 void destroy (){
     int a = 0;
     a = a;
 }
 
-unsigned int cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int vertices_cargados, u32 n){
+void cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int * vertices_cargados, u32 n){
     ENTRY entry;
     ENTRY * puntero_hash;
     char * nombre = int_to_string(edge);
-                                                //printf ("%s\n", nombre);
+                                                printf ("%s\n", nombre);
     entry.key = nombre;
     entry.data = NULL;
 
@@ -24,32 +26,35 @@ unsigned int cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int
     puntero_hash = hsearch(entry, FIND);
     if (puntero_hash == NULL)
     {
-                                                printf("nombre: %s  vertice: %u\n", entry.key, edge);
+                                                //printf("nombre: %s  vertice: %u\n", entry.key, edge);
         //control para ver que haya la cantidad justa de vertices
-        // if (*vertices_cargados >= n){
-        //     printf ("hay mas vertices de los aclarados\n");
-        //     destroy();
-        //     return;
-        // }
+        if (*vertices_cargados >= n){
+            printf ("hay mas vertices de los aclarados\n");
+            destroy();
+            return;
+        }
 
         vertice nodo = vertice_vacio();
-        nodo = vertice_init(nodo, edge, vertices_cargados);
-                                            //printf("llego hasta la init\n");
+        nodo = vertice_init(nodo, edge);
+                                                //printf("llego hasta la init\n");
         nodo = vertice_sumar_vecino(nodo, vecino);
         //cargar nodo a la lista
-        lista[vertices_cargados] = nodo;
+        lista[*vertices_cargados] = nodo;
 
         //cargar nodo a la lista de hash
         entry.key = nombre;
         entry.data = nodo;
         puntero_hash = hsearch(entry, ENTER);
 
-        vertices_cargados = vertices_cargados + 1;
+        *vertices_cargados = *vertices_cargados + 1;
     }
+
     else if (vertice_nombre(puntero_hash->data) != edge)
     {
-        printf("se le asigno el mismo hash al vertice %u, y al vertice %u! ayuda\n", vertice_nombre(puntero_hash->data), edge);
+                    // NO DEBERIA ENTRAR!
+                                            printf("se le asigno el mismo hash al vertice %u, y al vertice %u! ayuda\n", vertice_nombre(puntero_hash->data), edge);
     }
+
     //caso en el que el vertice ya esta cargado
     else{
                                             //printf("llego hasta el else\n");
@@ -59,7 +64,6 @@ unsigned int cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int
     
                                             //printf ("nodo : %u  vecino nuevo: %u  grado: %u\n", vertice_nombre(puntero_hash->data), vecino, vertice_grado(puntero_hash->data));
     puntero_hash = NULL;
-    return vertices_cargados;
 }
 
 int * prueba (){
@@ -110,7 +114,7 @@ int * prueba (){
         return NULL;
     }
 
-                                                    printf ("vertices: %u, lados: %u\n", n, m);
+                                                //printf ("vertices: %u, lados: %u\n", n, m);
     vertice lista [n];
 
     //leemos los lados
@@ -135,16 +139,41 @@ int * prueba (){
 
         sscanf(buffer, "e %u %u", &vertice1, &vertice2);
 
-                                                    printf ("vertice 1: %u  vertice 2: %u\n", vertice1, vertice2);
+                                                    //printf ("vertice 1: %u  vertice 2: %u\n", vertice1, vertice2);
 
-        vertices_cargados = cargar_vertice(lista, vertice1, vertice2, vertices_cargados, n);
-        vertices_cargados = cargar_vertice(lista, vertice2, vertice1, vertices_cargados, n);
+        cargar_vertice(lista, vertice1, vertice2, &vertices_cargados, n);
+        cargar_vertice(lista, vertice2, vertice1, &vertices_cargados, n);
     }
 
-    for (u32 i = 0; i < n; i++)
-    {
-        printf("nodo: %u,  grado: %u\n", vertice_nombre(lista[i]), vertice_grado(lista[i]));
-    }
+                                                    //printf ("n de vertices cargados: %u\n", vertices_cargados);
+
+    //
+    //
+    //
+    //          FALTA!!!
+    //
+    //
+    //
+    //          ordenar el array de vertices
+    // pasar la lista ligada de vecinos a un array (buscamos el indice en la hash y lo ponemos en el array)
+    //
+    //
+    //
+    //
+    //
+
+    
+
+
+                // es para debug
+                        int total = 0;
+                        for (u32 i = 0; i < n; i++)
+                        {
+                            total = total + vertice_grado(lista[i]);
+                            printf("nodo: %u,  grado: %u\n", vertice_nombre(lista[i]), vertice_grado(lista[i]));
+                        }
+
+                                                                        //printf ("grado total: %d\n", total/2);
     
 
     return NULL;

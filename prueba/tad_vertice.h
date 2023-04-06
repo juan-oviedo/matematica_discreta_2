@@ -4,7 +4,7 @@
 typedef struct s_vertice_t * vertice;
 
 vertice vertice_vacio ();
-vertice vertice_init (vertice v, u32 nombre, unsigned int indice_provisorio);
+vertice vertice_init (vertice v, u32 nombre);
 vertice vertice_sumar_vecino (vertice v, u32 vecino);
 vertice vertice_indexar (vertice v, u32 indice);
 vertice vertice_destruir (vertice v);
