@@ -4,14 +4,25 @@
 #include "EstructuraGrafo23.h"
 #include "tad_vertice.h"
 #include "int_to_str.h"
+#include "list.h"
 
 #define BUFFSIZE 100
 
 // falta destroy / ordenar la lista / lista de adyacencia / funciones del grafo y vertices / sacar asserts y limpiar codigo
 
 void destroy (){
-    int a = 0;
-    a = a;
+    //como sabemos cuantos elementos destruir, si usamos destroy en cualquier 
+    //parte de la carga, y tenemos memoria dinámica pedida para las keys
+}
+
+int vertex_compare(const void *v1, const void  *v2){
+    int result = 0;
+    if (vertice_nombre(v1)<vertice_nombre(v2)){
+        result = -1;
+    }else if (vertice_nombre(v1)>vertice_nombre(v2)){
+        result = 1;
+    }
+    return result;
 }
 
 void cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int * vertices_cargados, u32 n){
@@ -42,7 +53,7 @@ void cargar_vertice (vertice * lista, u32 edge, u32 vecino, unsigned int * verti
         lista[*vertices_cargados] = nodo;
 
         //cargar nodo a la lista de hash
-        entry.key = nombre;
+        //entry.key = nombre;   no es necesaria si arriba ya se hizo
         entry.data = nodo;
         puntero_hash = hsearch(entry, ENTER);
 
@@ -115,7 +126,7 @@ int * prueba (){
     }
 
                                                 //printf ("vertices: %u, lados: %u\n", n, m);
-    vertice lista [n];
+    vertice lista[n];
 
     //leemos los lados
     for (u32 i = 0; i < m; i++)
@@ -146,21 +157,40 @@ int * prueba (){
     }
 
                                                     //printf ("n de vertices cargados: %u\n", vertices_cargados);
+    //Ordenamos array según orden natural de nombres
+    qsort(lista, n, sizeof(vertice), vertex_compare);
+    //LLenamos campo orden natural
+    for (unsigned int i = 0u; i<n; i++){
+        //necesitamos acceso a la estructura desde este file, para acceder al campo?
+        lista[i]->indice = i;
+    }
+    //PASAJE DE LISTA DE ADYACENCIA A ARRAY DE ADYACENCIA
+    unsigned int list_size;
+    vertice current, vecino;
+    ENTRY entry, *ep;
 
-    //
-    //
-    //
-    //          FALTA!!!
-    //
-    //
-    //
-    //          ordenar el array de vertices
-    // pasar la lista ligada de vecinos a un array (buscamos el indice en la hash y lo ponemos en el array)
-    //
-    //
-    //
-    //
-    //
+    //iteramos sobre todos los vértices del array
+    for (unsigned int i = 0u; i<m; i++){
+        current = lista[i];
+        list_size = vertice_list_size(current);
+        current->arr_vecinos = malloc(list_size*sizeof(u32));
+        //iteramos sobre todos los vecinos del vértice i
+        for (unsigned int j = 0u; j<list_size; j++){
+            entry.key = int_to_string(head(current->vecinos));
+            current->vecinos = tail(current->vecinos);
+            ep = hsearch(entry, FIND);
+            //Chequeamos posible error, si funciona podemos eliminarlo
+            if (ep == NULL){
+                printf("error en encontrar vecino desde la hash table\n");
+                destroy();
+                exit(EXIT_FAILURE);
+            }
+            vecino = ep->data;
+            current->arr_vecinos[j] = vecino->indice;
+        }
+        //ya no necesitamos la linked list de adyacencia
+        current->vecinos = destroy(current->vecinos);
+    }
 
     
 
