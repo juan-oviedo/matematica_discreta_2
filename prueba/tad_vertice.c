@@ -10,6 +10,7 @@ struct s_vertice_t {
     u32 nombre;
     u32 grado;
     u32 indice;
+    u32 * vecinos_array;
     list vecinos;
 };
 
@@ -58,11 +59,20 @@ u32 vertice_indice (vertice v){
     return v->indice;
 }
 
-vertice vertice_destruir (vertice v){
+u32 indice_vecino (vertice v, u32 indice){
+    return v->vecinos_array[indice];
+}
+
+vertice vertice_destruir_vecinos(vertice v){
     assert (v != NULL);
     v->vecinos = destroy_list (v->vecinos);
-    free (v);
-    v = NULL;
+    return v;
+}
 
+vertice vertice_destruir_nodo_con_array(vertice v){
+    assert (v != NULL);
+    free(v->vecinos_array);
+    v->vecinos_array = NULL;
+    free(v);
     return v;
 }

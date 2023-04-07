@@ -268,8 +268,11 @@ int * prueba (){
     //         current->arr_vecinos[j] = vecino->indice;
     //     }
     //     //ya no necesitamos la linked list de adyacencia
-    //     current->vecinos = destroy(current->vecinos);
+    //     current->vecinos = vertice_destruir_vecinos (current);
     // }
+
+
+    
 
     
 
