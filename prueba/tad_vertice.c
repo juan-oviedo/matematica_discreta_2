@@ -54,6 +54,10 @@ u32 vertice_grado (vertice v){
     return v->grado;
 }
 
+u32 vertice_indice (vertice v){
+    return v->indice;
+}
+
 vertice vertice_destruir (vertice v){
     assert (v != NULL);
     v->vecinos = destroy_list (v->vecinos);
