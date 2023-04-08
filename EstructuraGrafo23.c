@@ -6,7 +6,10 @@
 #include "int_to_str.h"
 
 
+
 #define BUFFSIZE 100
+
+
 
 void destroy_solo_hash (char ** lista_de_nombres, u32 size){
     hdestroy();
@@ -76,7 +79,7 @@ void mergeSort(vertice * arr, int start, int end) {
     }
 }
 
-void cargar_vertice (vertice *lista, char ** lista_nombres, u32 edge, u32 vecino, unsigned int * vertices_cargados, u32 n){
+void cargar_vertice (vertice *lista, char ** lista_nombres, u32 edge, u32 vecino, u32 * vertices_cargados, u32 n){
     ENTRY entry;
     ENTRY * puntero_hash;
     char * nombre = int_to_string(edge);
@@ -92,7 +95,8 @@ void cargar_vertice (vertice *lista, char ** lista_nombres, u32 edge, u32 vecino
         //control para ver que haya la cantidad justa de vertices
         if (*vertices_cargados >= n){
             printf ("hay mas vertices de los aclarados\n");
-            //destroy();
+            destroy_solo_hash (lista_nombres, *vertices_cargados);
+            destroy_list_vertice (lista, *vertices_cargados);
             return;
         }
 
@@ -105,7 +109,6 @@ void cargar_vertice (vertice *lista, char ** lista_nombres, u32 edge, u32 vecino
         lista_nombres [*vertices_cargados] = nombre;
 
         //cargar nodo a la lista de hash
-        //entry.key = nombre;   no es necesaria si arriba ya se hizo
         entry.data = nodo;
         puntero_hash = hsearch(entry, ENTER);
 
@@ -116,8 +119,11 @@ void cargar_vertice (vertice *lista, char ** lista_nombres, u32 edge, u32 vecino
 
     else if (vertice_nombre(puntero_hash->data) != edge)
     {
-                    // NO DEBERIA ENTRAR!
-                                            printf("se le asigno el mismo hash al vertice %u, y al vertice %u! ayuda\n", vertice_nombre(puntero_hash->data), edge);
+        // NO DEBERIA ENTRAR!
+        printf("se le asigno el mismo hash al vertice %u, y al vertice %u! ayuda\n", vertice_nombre(puntero_hash->data), edge);
+        destroy_solo_hash (lista_nombres, *vertices_cargados);
+        destroy_list_vertice (lista, *vertices_cargados);
+        return;
     }
 
     //caso en el que el vertice ya esta cargado
@@ -130,14 +136,13 @@ void cargar_vertice (vertice *lista, char ** lista_nombres, u32 edge, u32 vecino
     
                                             //printf ("nodo : %u  vecino nuevo: %u  grado: %u\n", vertice_nombre(puntero_hash->data), vecino, vertice_grado(puntero_hash->data));
     puntero_hash = NULL;
-    
-
 }
 
-int * prueba (){
+Grafo lectura (Grafo G){
     u32 n;
     u32 m;
-    unsigned int vertices_cargados = 0;
+    u32 delta = 0;
+    u32 vertices_cargados = 0;
     
 
     char buffer[BUFFSIZE];
@@ -179,13 +184,27 @@ int * prueba (){
     int error = hcreate(2 * n);
     if (error == 0)
     {
-        printf("No se pudo alocar suficiente memoria para la hash table");
+        printf("No se pudo alocar suficiente memoria para la hash table\n");
         return NULL;
     }
 
                                                 //printf ("vertices: %u, lados: %u\n", n, m);
-    vertice *lista = calloc(n, sizeof(vertice));
-    char ** lista_nombres = calloc (n, sizeof(char *));
+    vertice * lista = NULL;
+    lista = calloc(n, sizeof(vertice));
+    if (lista == NULL)
+    {
+        printf("No se pudo alocar suficiente memoria para la lista de vertices\n");
+        return NULL;
+    }
+    
+    char ** lista_nombres = NULL;
+    lista_nombres = calloc (n, sizeof(char *));
+    if (lista == NULL)
+    {
+        printf("No se pudo alocar suficiente memoria para la lista de nombres\n");
+        free(lista);
+        return NULL;
+    }
 
     //leemos los lados
     for (u32 i = 0; i < m; i++)
@@ -197,13 +216,15 @@ int * prueba (){
         if (err == NULL)
         {
             printf("Error en la lectura\n");
-            //destroy();
+            destroy_solo_hash (lista_nombres, vertices_cargados);
+            destroy_list_vertice (lista, vertices_cargados);
             return NULL;
         }
         if (buffer[0] != 'e')
         {
             printf("Error en el formato de los lados\n");
-            //destroy();
+            destroy_solo_hash (lista_nombres, vertices_cargados);
+            destroy_list_vertice (lista, vertices_cargados);
             return NULL;
         }
 
@@ -223,40 +244,82 @@ int * prueba (){
     mergeSort(lista, 0, n-1);
     
     //LLenamos campo orden natural
-    for (unsigned int i = 0u; i < n; i++){
+    for (u32 i = 0; i < n; i++){
         lista[i] = vertice_indexar (lista[i], i);
     }
     
-    // pasamos de lista ligada de vecinos a array de vecinos
+    // pasamos de lista ligada de vecinos a array de vecinos y buscamos el mayor grado de los vertices
+    u32 comparador = 0;
     for (u32 i = 0; i < n; i++)
     {
+        comparador = vertice_grado(lista[i]);
+        if (delta < comparador)
+        {
+            delta = comparador;
+        }
         lista[i] = vertice_generar_array_adyacencia(lista[i]);
+        if (lista[i] == NULL)
+        {
+            printf("hubo algun error en la carga de vecinos\n");
+            destroy_solo_hash (lista_nombres, vertices_cargados);
+            destroy_list_vertice (lista, vertices_cargados);
+            return NULL;
+        }
+        
     }
     
     destroy_solo_hash(lista_nombres, n);
-                // es para debug
-                        int total = 0;
-                        for (u32 i = 0; i < n; i++)
-                        {
-                            total = total + vertice_grado(lista[i]);
-                            printf("nodo: %u,  grado: %u indice: %u\n", vertice_nombre(lista[i]), vertice_grado(lista[i]), vertice_indice(lista[i]));
-                        }
+                                                    // es para debug
+                                                    int total = 0;
+                                                    for (u32 i = 0; i < n; i++)
+                                                    {
+                                                        total = total + vertice_grado(lista[i]);
+                                                        printf("nodo: %u,  grado: %u indice: %u\n", vertice_nombre(lista[i]), vertice_grado(lista[i]), vertice_indice(lista[i]));
+                                                    }
 
-                                                                        //printf ("grado total: %d\n", total/2);
+                                                    //                                                 //printf ("grado total: %d\n", total/2);
     
-
-
-
-
-    destroy_list_vertice(lista, n);
-
-    return NULL;
+    G->n = n;
+    G->m = m;
+    G->delta = delta;
+    G->vertices = lista;
+    return G;
 }
 
-
-int main()
-{
-    int * a = prueba();
-    a = a;
-    return 0;
+Grafo ConstruirGrafo(){
+    Grafo grafo = malloc(sizeof(GrafoSt));
+    grafo->delta = grafo->m = grafo->n = 0;
+    grafo->vertices = NULL;
+    grafo = lectura (grafo);
+    if (grafo == NULL)
+    {
+         printf("hubo algun problema en la carga del grafo\n");
+    }
+    
+    return grafo;
 }
+
+void DestruirGrafo(Grafo G){
+    destroy_list_vertice(G->vertices, G->n);
+    free(G);
+}
+
+u32 NumeroDeVertices(Grafo G){
+    return G->n;
+}
+u32 NumeroDeLados(Grafo G){
+    return G->m;
+}
+u32 Delta(Grafo G){
+    return G->delta;
+}
+u32 Nombre(u32 i,Grafo G){
+    return vertice_nombre(G->vertices[i]);
+}
+u32 Grado(u32 i,Grafo G){
+    return vertice_grado(G->vertices[i]);
+}
+u32 IndiceVecino(u32 j,u32 i,Grafo G){
+    return indice_vecino(G->vertices[i],j);
+}
+

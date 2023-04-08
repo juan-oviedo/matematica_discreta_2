@@ -4,15 +4,13 @@
 
 typedef unsigned int u32;
 
-#include "EstructuraGrafo23.h"
 #include "tad_vertice.h"
-#include "int_to_str.h"
 
 typedef struct{
 	u32 n;
 	u32 m;
 	u32 delta;
-	vertice * vertice;
+	vertice * vertices;
 }GrafoSt;
 
 typedef GrafoSt *Grafo;

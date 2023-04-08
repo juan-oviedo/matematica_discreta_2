@@ -1,10 +1,11 @@
-#include <assert.h>
 #include <stdlib.h>
+#include <search.h>
 
 
 #include "EstructuraGrafo23.h"
 #include "list.h"
 #include "tad_vertice.h"
+#include "int_to_str.h"
 
 struct s_vertice_t {
     u32 nombre;
@@ -20,20 +21,17 @@ vertice vertice_vacio (){
 }
 
 vertice vertice_init (vertice v, u32 nombre){
-    assert(v == NULL);
-
     v = malloc(sizeof (struct s_vertice_t));
     v->nombre = nombre;
     v->grado = 0;
     v->indice = max_u32;
+    v->vecinos_array = NULL;
     v->vecinos = empty_list();
 
     return v;
 }
 
 vertice vertice_sumar_vecino (vertice v, u32 vecino){
-    assert (v != NULL);
-
     v->vecinos = addl(v->vecinos, vecino);
 
     v->grado = v->grado + 1;
@@ -41,7 +39,6 @@ vertice vertice_sumar_vecino (vertice v, u32 vecino){
 }
 
 vertice vertice_indexar (vertice v, u32 indice){
-    assert (v->indice == max_u32);
     v->indice = indice;
 
     return v;
@@ -64,15 +61,47 @@ u32 indice_vecino (vertice v, u32 indice){
 }
 
 vertice vertice_destruir_vecinos(vertice v){
-    assert (v != NULL);
     v->vecinos = destroy_list (v->vecinos);
     return v;
 }
 
 vertice vertice_destruir_nodo_con_array(vertice v){
-    assert (v != NULL);
-    free(v->vecinos_array);
-    v->vecinos_array = NULL;
+    if (v->vecinos_array != NULL)
+    {
+        free(v->vecinos_array);
+        v->vecinos_array = NULL;
+    }
     free(v);
+    return v;
+}
+
+vertice vertice_generar_array_adyacencia(vertice v){
+    list lista = v->vecinos;
+    unsigned int n = v->grado;
+    v->vecinos_array = calloc (n, sizeof(u32));
+    u32 nombre;
+    ENTRY entry;
+    ENTRY * puntero_hash;
+    for(unsigned int i = 0; i < n; i++)
+    {
+        nombre = head(lista);
+        lista = tail(lista);
+        char * str = int_to_string(nombre);
+        entry.key = str;
+        entry.data = NULL;
+        puntero_hash = hsearch(entry, FIND);
+        
+        if (puntero_hash == NULL)
+        {
+            lista = destroy_list (lista);
+            lista = NULL;
+            free (str);
+            v = vertice_destruir_nodo_con_array (v);
+            return NULL;
+        }
+        
+        v->vecinos_array[i] = vertice_indice(puntero_hash->data);
+        free (str);
+    }
     return v;
 }
